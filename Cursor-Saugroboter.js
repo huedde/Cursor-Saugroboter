@@ -222,10 +222,17 @@
     setConfig(config) {
       this._config = config || {};
       this._theme = this._config.default_theme || 'Dark';
+      this._mapEl = null;
+      this._statusRow = null;
+      this._roomSel = null;
       this._render();
     }
     set hass(hass) {
       this._hass = hass;
+      if (this._mapEl != null || this._statusRow != null) {
+        this._updateDynamic();
+        return;
+      }
       this._render();
     }
     getCardSize() { return 10; }
@@ -239,6 +246,60 @@
       this._hass.callService(domain, service, data);
     }
 
+    _updateDynamic() {
+      if (!this._hass || !this._config) return;
+      const c = this._config;
+      const vacuumName = getVacuumName(c.vacuum_entity);
+      if (this._mapEl) {
+        this._mapEl.hass = this._hass;
+      }
+      if (this._statusRow && vacuumName) {
+        const sensor = (name, entityId) => {
+          if (!entityId) {
+            const d = document.createElement('div');
+            d.style.cssText = 'font-size: 12px;';
+            d.innerHTML = '<strong>' + name + '</strong>: –';
+            return d;
+          }
+          const s = this._state(entityId);
+          const v = s ? (s.attributes && s.attributes.unit_of_measurement ? s.state + ' ' + s.attributes.unit_of_measurement : s.state) : '–';
+          const d = document.createElement('div');
+          d.style.cssText = 'font-size: 12px;';
+          d.innerHTML = '<strong>' + name + '</strong>: ' + v;
+          return d;
+        };
+        const batteryEntity = c.battery_entity || ('sensor.' + vacuumName + '_battery_level');
+        const suctionEntity = c.suction_entity || ('select.' + vacuumName + '_suction_level');
+        const areaEntity = c.area_entity || ('sensor.' + vacuumName + '_cleaned_area');
+        const timeEntity = c.time_entity || ('sensor.' + vacuumName + '_cleaning_time');
+        const modeStatusEntity = c.mode_entity || ('select.' + vacuumName + '_cleaning_mode');
+        const roomStatusEntity = c.room_status_entity || ('sensor.' + vacuumName + '_current_room');
+        this._statusRow.innerHTML = '';
+        this._statusRow.appendChild(sensor('Batterie', batteryEntity));
+        this._statusRow.appendChild(sensor('Saugkraft', suctionEntity));
+        this._statusRow.appendChild(sensor('Fläche', areaEntity));
+        this._statusRow.appendChild(sensor('Zeit', timeEntity));
+        this._statusRow.appendChild(sensor('Modus', modeStatusEntity));
+        this._statusRow.appendChild(sensor('Raum', roomStatusEntity));
+      }
+      if (this._roomSel && c.room_select_entity) {
+        const roomState = this._state(c.room_select_entity);
+        const sel = this._roomSel;
+        const prev = sel.value;
+        sel.innerHTML = '';
+        if (roomState && roomState.attributes && roomState.attributes.options) {
+          roomState.attributes.options.forEach(opt => {
+            const o = document.createElement('option');
+            o.value = opt;
+            o.textContent = opt;
+            if (roomState.state === opt) o.selected = true;
+            sel.appendChild(o);
+          });
+          if (prev && sel.options.length) sel.value = prev;
+        }
+      }
+    }
+
     _render() {
       if (!this._config || !this._hass) return;
       const c = this._config;
@@ -246,6 +307,9 @@
       const mapCamera = c.map_camera;
       const vacuumName = getVacuumName(vacuumEntity);
       if (!vacuumEntity || !mapCamera) {
+        this._mapEl = null;
+        this._statusRow = null;
+        this._roomSel = null;
         if (!this.shadowRoot) this.attachShadow({ mode: 'open' });
         this.shadowRoot.innerHTML = '';
         const card = document.createElement('ha-card');
@@ -302,6 +366,7 @@
       if (c.room_select_entity) {
         const roomState = this._state(c.room_select_entity);
         const roomSel = document.createElement('select');
+        this._roomSel = roomSel;
         roomSel.style.cssText = 'padding: 6px 10px; font-size: 13px; min-width: 140px;';
         if (roomState && roomState.attributes && roomState.attributes.options) {
           roomState.attributes.options.forEach(opt => {
@@ -323,6 +388,8 @@
           if (c.room_script_entity) this._callService('script', 'turn_on', { entity_id: c.room_script_entity });
         });
         container.appendChild(row([document.createTextNode('Raum: '), roomSel, roomBtn]));
+      } else {
+        this._roomSel = null;
       }
 
       const sensor = (name, entityId) => {
@@ -340,6 +407,7 @@
         return d;
       };
       const statusRow = document.createElement('div');
+      this._statusRow = statusRow;
       statusRow.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px;';
       if (vacuumName) {
         const batteryEntity = this._config.battery_entity || ('sensor.' + vacuumName + '_battery_level');
@@ -373,6 +441,7 @@
       if (typeof customElements.get('xiaomi-vacuum-map-card') === 'function') {
         try {
           const mapEl = document.createElement('xiaomi-vacuum-map-card');
+          this._mapEl = mapEl;
           mapEl.setConfig({
             entity: vacuumEntity,
             map_source: { camera: mapCamera },
@@ -384,9 +453,14 @@
           mapEl.hass = this._hass;
           mapWrap.appendChild(mapEl);
           mapUsed = true;
-        } catch (e) {}
+        } catch (e) {
+          this._mapEl = null;
+        }
+      } else {
+        this._mapEl = null;
       }
       if (!mapUsed) {
+        this._mapEl = null;
         const img = document.createElement('img');
         img.alt = 'Map';
         img.style.cssText = 'width: 100%; display: block;';
