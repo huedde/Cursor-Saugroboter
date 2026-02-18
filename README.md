@@ -28,10 +28,8 @@ Die **Cursor Saugroboter-Karte** ist **eine einzelne Karte** (keine View). Du f�
 2. Karte öffnen → **⋮** → **Konfigurieren** → **Visuellen Editor anzeigen**.
 3. Im Editor eintragen:
    - **Titel der Karte** (z. B. „Saugroboter“)
-   - **Vacuum-Entity (Pflicht)** – z. B. `vacuum.dreame_vacuum_r2449k`
-   - **Map-Kamera (Pflicht)** – z. B. `camera.dreame_vacuum_r2449k_map`
-   - **Raum-Dropdown (optional)** – z. B. `input_select.saugroboter_raum`
-   - **Script „Raum starten“ (optional)** – z. B. `script.saugroboter_raum_reinigen`
+   - **Vacuum-Entity (Pflicht)** und **Map-Kamera (Pflicht)** – **Entity-Suche**: Einfach tippen, die Liste filtert bei jedem Buchstaben (Vacuum: `vacuum.…`, Kamera: `camera.…`, Raum: `input_select.…`, Script: `script.…`). Entität aus der Liste wählen.
+   - **Raum-Dropdown** und **Script „Raum starten“** (optional) – ebenfalls per Suche auswählbar.
    - **Karten-Hintergrund (Standard)** – Dark oder Hell
 4. **Speichern**.
 

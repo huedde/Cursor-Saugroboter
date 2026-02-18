@@ -18,6 +18,27 @@
     }));
   }
 
+  const MAX_ENTITY_RESULTS = 12;
+  const listStyle = 'position:absolute;left:0;right:0;top:100%;z-index:100;max-height:220px;overflow-y:auto;background:var(--ha-card-background);border:1px solid var(--divider-color);border-radius:8px;margin-top:2px;box-shadow:0 4px 12px rgba(0,0,0,0.15);list-style:none;margin:2px 0 0;padding:0;';
+  const itemStyle = 'padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--divider-color);display:block;';
+  const itemHoverStyle = 'background:var(--primary-color);color:var(--text-primary-color);';
+
+  function filterEntities(hass, query, domainPrefix) {
+    if (!hass || !hass.states) return [];
+    const q = (query || '').trim().toLowerCase();
+    const out = [];
+    for (const id of Object.keys(hass.states)) {
+      if (domainPrefix && !id.startsWith(domainPrefix)) continue;
+      const s = hass.states[id];
+      const name = (s.attributes && s.attributes.friendly_name) || id;
+      if (!q || id.toLowerCase().includes(q) || name.toLowerCase().includes(q)) {
+        out.push({ entity_id: id, name: name });
+      }
+    }
+    out.sort((a, b) => a.entity_id.localeCompare(b.entity_id));
+    return out.slice(0, MAX_ENTITY_RESULTS);
+  }
+
   // ========== Konfigurations-Editor ==========
   class CursorSaugroboterCardEditor extends HTMLElement {
     setConfig(config) {
@@ -29,13 +50,13 @@
       if (!this.shadowRoot) this.attachShadow({ mode: 'open' });
       this._render();
     }
-    _addField(w, labelText, input, mb) {
+    _addField(w, labelText, el, mb) {
       const label = document.createElement('label');
       label.style.cssText = 'display:block;margin-bottom:6px;font-weight:500;margin-top:12px;';
       label.textContent = labelText;
       w.appendChild(label);
-      input.style.marginBottom = mb || '16px';
-      w.appendChild(input);
+      if (el.style) el.style.marginBottom = mb || '16px';
+      w.appendChild(el);
     }
     _render() {
       if (!this.shadowRoot) return;
@@ -54,35 +75,6 @@
       titleInput.value = c.title || DEFAULT_TITLE;
       titleInput.placeholder = DEFAULT_TITLE;
       titleInput.style.cssText = style;
-      const vacuumInput = document.createElement('input');
-      vacuumInput.type = 'text';
-      vacuumInput.value = c.vacuum_entity || '';
-      vacuumInput.placeholder = 'vacuum.dreame_vacuum_r2449k';
-      vacuumInput.style.cssText = style;
-      const mapInput = document.createElement('input');
-      mapInput.type = 'text';
-      mapInput.value = c.map_camera || '';
-      mapInput.placeholder = 'camera.dreame_vacuum_r2449k_map';
-      mapInput.style.cssText = style;
-      const roomSelectInput = document.createElement('input');
-      roomSelectInput.type = 'text';
-      roomSelectInput.value = c.room_select_entity || '';
-      roomSelectInput.placeholder = 'input_select.saugroboter_raum';
-      roomSelectInput.style.cssText = style;
-      const roomScriptInput = document.createElement('input');
-      roomScriptInput.type = 'text';
-      roomScriptInput.value = c.room_script_entity || '';
-      roomScriptInput.placeholder = 'script.saugroboter_raum_reinigen';
-      roomScriptInput.style.cssText = style;
-      const themeSelect = document.createElement('select');
-      themeSelect.style.cssText = style;
-      THEMES.forEach(t => {
-        const o = document.createElement('option');
-        o.value = t;
-        o.textContent = t;
-        o.selected = (c.default_theme || 'Dark') === t;
-        themeSelect.appendChild(o);
-      });
 
       const getConfig = () => ({
         title: titleInput.value.trim() || undefined,
@@ -93,16 +85,116 @@
         default_theme: themeSelect.value
       });
 
-      [titleInput, vacuumInput, mapInput, roomSelectInput, roomScriptInput].forEach(inp => {
-        inp.addEventListener('input', () => dispatchConfig(this, getConfig()));
+      const vacuumWrap = document.createElement('div');
+      vacuumWrap.style.position = 'relative';
+      vacuumWrap.style.maxWidth = '400px';
+      const vacuumInput = document.createElement('input');
+      vacuumInput.type = 'text';
+      vacuumInput.value = c.vacuum_entity || '';
+      vacuumInput.placeholder = 'Tippen zum Suchen: vacuum. …';
+      vacuumInput.style.cssText = 'width:100%;padding:8px 12px;box-sizing:border-box;font-size:14px;';
+      const vacuumList = document.createElement('ul');
+      vacuumList.style.cssText = listStyle;
+      vacuumList.hidden = true;
+      vacuumWrap.appendChild(vacuumInput);
+      vacuumWrap.appendChild(vacuumList);
+
+      const mapWrap = document.createElement('div');
+      mapWrap.style.position = 'relative';
+      mapWrap.style.maxWidth = '400px';
+      const mapInput = document.createElement('input');
+      mapInput.type = 'text';
+      mapInput.value = c.map_camera || '';
+      mapInput.placeholder = 'Tippen zum Suchen: camera. …';
+      mapInput.style.cssText = 'width:100%;padding:8px 12px;box-sizing:border-box;font-size:14px;';
+      const mapList = document.createElement('ul');
+      mapList.style.cssText = listStyle;
+      mapList.hidden = true;
+      mapWrap.appendChild(mapInput);
+      mapWrap.appendChild(mapList);
+
+      const roomWrap = document.createElement('div');
+      roomWrap.style.position = 'relative';
+      roomWrap.style.maxWidth = '400px';
+      const roomSelectInput = document.createElement('input');
+      roomSelectInput.type = 'text';
+      roomSelectInput.value = c.room_select_entity || '';
+      roomSelectInput.placeholder = 'Tippen zum Suchen: input_select. …';
+      roomSelectInput.style.cssText = 'width:100%;padding:8px 12px;box-sizing:border-box;font-size:14px;';
+      const roomList = document.createElement('ul');
+      roomList.style.cssText = listStyle;
+      roomList.hidden = true;
+      roomWrap.appendChild(roomSelectInput);
+      roomWrap.appendChild(roomList);
+
+      const scriptWrap = document.createElement('div');
+      scriptWrap.style.position = 'relative';
+      scriptWrap.style.maxWidth = '400px';
+      const roomScriptInput = document.createElement('input');
+      roomScriptInput.type = 'text';
+      roomScriptInput.value = c.room_script_entity || '';
+      roomScriptInput.placeholder = 'Tippen zum Suchen: script. …';
+      roomScriptInput.style.cssText = 'width:100%;padding:8px 12px;box-sizing:border-box;font-size:14px;';
+      const scriptList = document.createElement('ul');
+      scriptList.style.cssText = listStyle;
+      scriptList.hidden = true;
+      scriptWrap.appendChild(roomScriptInput);
+      scriptWrap.appendChild(scriptList);
+
+      function bindEntitySearch(inp, listEl, domainPrefix, getCfg) {
+        let hideTimer = 0;
+        function show() {
+          window.clearTimeout(hideTimer);
+          const entities = filterEntities(self._hass, inp.value, domainPrefix);
+          listEl.innerHTML = '';
+          if (entities.length === 0) { listEl.hidden = true; return; }
+          entities.forEach(function(e) {
+            const li = document.createElement('li');
+            li.style.cssText = itemStyle;
+            li.textContent = e.name;
+            li.title = e.entity_id;
+            li.addEventListener('mouseenter', function() { this.style.cssText = itemStyle + itemHoverStyle; });
+            li.addEventListener('mouseleave', function() { this.style.cssText = itemStyle; });
+            li.addEventListener('mousedown', function(ev) {
+              ev.preventDefault();
+              inp.value = e.entity_id;
+              listEl.hidden = true;
+              dispatchConfig(self, getCfg());
+            });
+            listEl.appendChild(li);
+          });
+          listEl.hidden = false;
+        }
+        function hide() { hideTimer = window.setTimeout(function() { listEl.hidden = true; }, 200); }
+        inp.addEventListener('input', function() { dispatchConfig(self, getCfg()); show(); });
+        inp.addEventListener('focus', function() { show(); });
+        inp.addEventListener('blur', hide);
+      }
+      const self = this;
+
+      bindEntitySearch(vacuumInput, vacuumList, 'vacuum.', getConfig);
+      bindEntitySearch(mapInput, mapList, 'camera.', getConfig);
+      bindEntitySearch(roomSelectInput, roomList, 'input_select.', getConfig);
+      bindEntitySearch(roomScriptInput, scriptList, 'script.', getConfig);
+
+      titleInput.addEventListener('input', () => dispatchConfig(this, getConfig()));
+
+      const themeSelect = document.createElement('select');
+      themeSelect.style.cssText = style;
+      THEMES.forEach(t => {
+        const o = document.createElement('option');
+        o.value = t;
+        o.textContent = t;
+        o.selected = (c.default_theme || 'Dark') === t;
+        themeSelect.appendChild(o);
       });
       themeSelect.addEventListener('change', () => dispatchConfig(this, getConfig()));
 
       this._addField(w, 'Titel der Karte', titleInput);
-      this._addField(w, 'Vacuum-Entity (Pflicht)', vacuumInput);
-      this._addField(w, 'Map-Kamera (Pflicht)', mapInput);
-      this._addField(w, 'Raum-Dropdown (optional)', roomSelectInput);
-      this._addField(w, 'Script „Raum starten“ (optional)', roomScriptInput);
+      this._addField(w, 'Vacuum-Entity (Pflicht)', vacuumWrap);
+      this._addField(w, 'Map-Kamera (Pflicht)', mapWrap);
+      this._addField(w, 'Raum-Dropdown (optional)', roomWrap);
+      this._addField(w, 'Script „Raum starten“ (optional)', scriptWrap);
       const themeLabel = document.createElement('label');
       themeLabel.style.cssText = 'display:block;margin-bottom:6px;font-weight:500;margin-top:12px;';
       themeLabel.textContent = 'Karten-Hintergrund (Standard)';
@@ -112,7 +204,7 @@
 
       const info = document.createElement('div');
       info.style.cssText = 'margin-top:20px;padding:12px;background:var(--ha-card-background, var(--secondary-background-color));border-radius:8px;font-size:13px;';
-      info.innerHTML = '<p><strong>Eine Karte</strong> – Map, Dark/Hell, Raum-Dropdown, Status und Steuerung (Saugen, Wischen, Start/Stopp) sind in dieser einen Karte enthalten.</p>';
+      info.innerHTML = '<p><strong>Eine Karte</strong> – Map, Dark/Hell, Raum-Dropdown, Status und Steuerung (Saugen, Wischen, Start/Stopp) sind in dieser einen Karte enthalten.</p><p>Entity-Felder: Tippen zum Suchen, Liste aktualisiert sich bei jedem Buchstaben.</p>';
       w.appendChild(info);
 
       this.shadowRoot.innerHTML = '';
