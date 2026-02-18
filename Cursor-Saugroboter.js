@@ -76,7 +76,9 @@
       titleInput.placeholder = DEFAULT_TITLE;
       titleInput.style.cssText = style;
 
+      const CARD_TYPE = 'custom:cursor-saugroboter-card';
       const getConfig = () => ({
+        type: CARD_TYPE,
         title: titleInput.value.trim() || undefined,
         vacuum_entity: vacuumInput.value.trim() || undefined,
         map_camera: mapInput.value.trim() || undefined,
