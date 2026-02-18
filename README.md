@@ -1,140 +1,108 @@
 # Vacuum-Karte für Home Assistant (Dreame)
 
-Verbesserte Vacuum-Karte mit **Dark-/Hell-Modus** für den Kartenhintergrund, **Raumauswahl per Dropdown**, reduzierten Funktionen (nur Saugen, Wischen, Saugen & Wischen) und **aktuellen Status** (Saugkraft, Batterie, Fläche, Reinigungszeit usw.). Nutzt die **Current Map** der Dreame-Integration mit angepasster Optik.
+**Eine einzelne Lovelace-Karte** mit Map, **Dark-/Hell-Modus**, **Raum-Dropdown**, **Status** (Saugkraft, Batterie, Fläche, Zeit, Modus, aktueller Raum) und **Steuerung** (Nur Saugen, Saugen & Wischen, Nur Wischen, Start, Stopp). Keine View nötig – alles in einer Karte.
 
 ## Voraussetzungen
 
 - **Home Assistant** mit Dreame Vacuum Integration (Tasshack) – Saugroboter bereits integriert
-- **Xiaomi Vacuum Map Card** (PiotrMachowski) über HACS installiert  
-  - HACS → Frontend → „Xiaomi Vacuum Map Card“ suchen und installieren
-- **card-mod** (optional, für Dark/Hell-Styling der Karte) über HACS
-- **Conditional Card** (in HA Core enthalten)
+- **Xiaomi Vacuum Map Card** (PiotrMachowski) über HACS installiert – für die **interaktive Map** in der Karte (optional; ohne sie wird die Map-Kamera als Bild angezeigt)
 
 ## Enthaltene Dateien
 
 | Datei | Beschreibung |
 |-------|--------------|
-| `vacuum-karte.yaml` | Lovelace-View: Karte, Status, Raum-Dropdown, Modi (Saugen/Wischen), Dark/Hell-Karte |
-| `home-assistant-config-snippets.yaml` | Hilfs-Entities: `input_select` (Raum, Karten-Modus) und Script „Raum starten“ |
-| `themes-vacuum-map.yaml` | Optionale Theme-Variablen für Map-Card (Dark/Hell) |
-| `Cursor-Saugroboter.js` | Lovelace-Info-Karte mit visuellem Editor (für HACS-konforme Repo-Struktur) |
-| `hacs.json` | HACS-Manifest für dieses Repository |
+| `Cursor-Saugroboter.js` | **Eine Karte**: Map, Dark/Hell, Raum-Dropdown, Status, Steuerung – mit visuellem Editor |
+| `vacuum-karte.yaml` | Alternative: Lovelace-View (falls du lieber eine ganze View nutzen willst) |
+| `home-assistant-config-snippets.yaml` | Hilfs-Entities: `input_select` (Raum), Script „Raum starten“ – für Raum-Dropdown |
+| `themes-vacuum-map.yaml` | Optionale Theme-Variablen |
+| `hacs.json` | HACS-Manifest |
 | `README.md` | Diese Anleitung |
 
-## Konfiguration der Cursor-Saugroboter-Karte (Info-Karte)
+## Eine Karte – Konfiguration
 
-Die **Cursor Saugroboter-Karte** ist eine kleine Info-Karte, die nach der HACS-Installation angezeigt werden kann. Sie unterstützt den **visuellen Editor** und **YAML**.
+Die **Cursor Saugroboter-Karte** ist **eine einzelne Karte** (keine View). Du fügst sie einmal hinzu und konfigurierst alle Entity-IDs im visuellen Editor.
 
 ### Visueller Editor
 
-1. Karte zum Dashboard hinzufügen („Karte hinzufügen“ → „Cursor Saugroboter“).
-2. Auf die Karte klicken → **⋮** → **Konfigurieren**.
-3. Oben rechts **„Visuellen Editor anzeigen“** wählen (falls noch YAML angezeigt wird).
-4. Im visuellen Editor kannst du:
-   - **Titel der Karte** – Überschrift der Karte (z. B. „Saugroboter – Hinweis“).
-   - **View-Pfad** – Pfad der Vacuum-View im Dashboard (z. B. `saugroboter`, wie in `vacuum-karte.yaml` unter `path: saugroboter`).
-   - **Button „Zur Vacuum-Karte“ anzeigen** – Checkbox: Soll auf der Karte ein Button angezeigt werden, der direkt zur Vacuum-View führt?
-   - **Button-Text** – Text des Buttons (z. B. „Zur Vacuum-Karte öffnen“).
-5. **Speichern** klicken.
+1. **Karte hinzufügen** → „Cursor Saugroboter“ wählen.
+2. Karte öffnen → **⋮** → **Konfigurieren** → **Visuellen Editor anzeigen**.
+3. Im Editor eintragen:
+   - **Titel der Karte** (z. B. „Saugroboter“)
+   - **Vacuum-Entity (Pflicht)** – z. B. `vacuum.dreame_vacuum_r2449k`
+   - **Map-Kamera (Pflicht)** – z. B. `camera.dreame_vacuum_r2449k_map`
+   - **Raum-Dropdown (optional)** – z. B. `input_select.saugroboter_raum`
+   - **Script „Raum starten“ (optional)** – z. B. `script.saugroboter_raum_reinigen`
+   - **Karten-Hintergrund (Standard)** – Dark oder Hell
+4. **Speichern**.
 
 ### YAML-Konfiguration
 
-Falls du die Karte per YAML bearbeitest:
-
 ```yaml
 type: custom:cursor-saugroboter-card
-title: Cursor Saugroboter          # optional, Standard: "Cursor Saugroboter"
-view_path: saugroboter             # optional, Pfad der Vacuum-View (path in vacuum-karte.yaml)
-show_view_button: true             # optional, Button anzeigen (Standard: true)
-button_text: Zur Vacuum-Karte öffnen  # optional, Button-Beschriftung
+title: Saugroboter
+vacuum_entity: vacuum.dreame_vacuum_r2449k
+map_camera: camera.dreame_vacuum_r2449k_map
+room_select_entity: input_select.saugroboter_raum
+room_script_entity: script.saugroboter_raum_reinigen
+default_theme: Dark
 ```
 
-- **`title`** (optional): Überschrift der Karte.
-- **`view_path`** (optional): Pfad der Vacuum-View im Dashboard. Wenn gesetzt und Button aktiv, erscheint ein Link-Button zur View (z. B. `/lovelace/saugroboter`).
-- **`show_view_button`** (optional): `true`/`false` – Button „Zur Vacuum-Karte“ anzeigen oder ausblenden.
-- **`button_text`** (optional): Beschriftung des Buttons.
+- **`vacuum_entity`** (Pflicht): Entity-ID des Saugroboters.
+- **`map_camera`** (Pflicht): Entity-ID der Map-Kamera (Current Map).
+- **`room_select_entity`** (optional): Dropdown für Raumauswahl.
+- **`room_script_entity`** (optional): Script zum Starten der Raumreinigung.
+- **`default_theme`** (optional): `Dark` oder `Hell` – Standard für den Karten-Hintergrund (umschaltbar auf der Karte).
 
-### Hinweis zum visuellen Editor
+### Inhalt der Karte
 
-Die Karte implementiert **getConfigElement()** und **getStubConfig()**. Dadurch zeigt Lovelace den visuellen Editor mit dem Feld „Titel der Karte“ und dem Hinweistext an, statt „Visueller Editor wird nicht unterstützt“. Die eigentliche Vacuum-Steuerung (Map, Dark/Hell, Raum-Dropdown, Status) bleibt die **View** aus `vacuum-karte.yaml`.
+- **Karten-Hintergrund** – Dropdown Dark/Hell (direkt auf der Karte).
+- **Raum-Dropdown** und Button **„Raum starten“** (wenn konfiguriert).
+- **Status** – Batterie, Saugkraft, Fläche, Zeit, Modus, aktueller Raum.
+- **Buttons** – Nur Saugen, Saugen & Wischen, Nur Wischen, Start, Stopp.
+- **Map** – interaktiv (wenn Xiaomi Vacuum Map Card installiert), sonst Kamerabild.
 
 ## HACS-Repository hinzufügen
 
-Wenn du dieses Repository in HACS als **benutzerdefiniertes Repository** einbinden willst:
-
 1. **HACS** → **Frontend** → **⋮** → **Benutzerdefinierte Repositories**
 2. **Repository:** `https://github.com/huedde/Cursor-Saugroboter` (oder dein Fork)
-3. **Typ:** **Dashboard** (oder **Plugin**) auswählen – HACS erwartet ein Plugin/Dashboard mit einer `.js`-Datei; diese ist vorhanden.
-4. **Hinzufügen** klicken.
+3. **Typ:** **Dashboard** oder **Plugin**
+4. **Hinzufügen** → „Cursor Saugroboter“ installieren.
 
-Nach dem Hinzufügen kannst du „Cursor Saugroboter“ installieren. Die eigentliche Vacuum-Karte ist die **YAML-View** (`vacuum-karte.yaml`) – diese View musst du wie unter „Einrichtung“ beschrieben manuell in dein Dashboard übernehmen und die Entity-IDs anpassen.
+Danach **eine Karte** zum Dashboard hinzufügen („Cursor Saugroboter“) und Vacuum-Entity sowie Map-Kamera im Editor eintragen.
 
 ## Einrichtung (Schritte)
 
 ### 1. Entity-IDs ermitteln
 
-Unter **Einstellungen → Geräte & Dienste → Dreame Vacuum** dein Gerät (z. B. „Saugfried“) öffnen. Dort findest du u. a.:
+Unter **Einstellungen → Geräte & Dienste → Dreame Vacuum** dein Gerät öffnen. Dort findest du:
 
-- **Vacuum:** `vacuum.xxx` (z. B. `vacuum.dreame_vacuum_r2449k`)
-- **Map (Current Map):** `camera.xxx_map` (z. B. `camera.dreame_vacuum_r2449k_map`)
-- **Name-Teil:** Der Teil zwischen `vacuum.` und dem Ende (z. B. `dreame_vacuum_r2449k`) wird für Sensoren/Selects genutzt: `sensor.xxx_battery_level`, `select.xxx_suction_level`, `select.xxx_cleaning_mode` usw.
+- **Vacuum:** `vacuum.xxx`
+- **Map (Current Map):** `camera.xxx_map`
 
-Notiere dir: `vacuum.xxx`, `camera.xxx_map`, `xxx` (Name).
+Diese beiden trägst du in der **Cursor Saugroboter-Karte** unter **Vacuum-Entity** und **Map-Kamera** ein (visueller Editor oder YAML).
 
-### 2. Hilfs-Entities anlegen
+### 2. Raum-Dropdown (optional)
 
-- **Karten-Hintergrund (Dark/Hell)**  
-  Hilfsmittel → Hilfsmittel erstellen → Dropdown  
-  - Name: z. B. „Karten-Hintergrund“  
-  - Optionen: `Dark`, `Hell`  
-  - Entity-ID: `input_select.vacuum_map_theme`
+Wenn du die **Raumauswahl** auf der Karte nutzen willst:
 
-- **Raum zum Reinigen**  
-  Ein weiteres Dropdown:  
-  - Name: z. B. „Raum zum Reinigen“  
-  - Optionen: z. B. `Ganzer Boden`, `B1.12`, `B1.13`, … (deine Raumnamen; Segment-IDs siehe unten)  
-  - Entity-ID: `input_select.saugroboter_raum`
+- **input_select** für Räume anlegen (z. B. `input_select.saugroboter_raum`) mit Optionen wie „Ganzer Boden“, „B1.12“, „B1.13“ usw.
+- **Script** „Raum starten“ anlegen (z. B. `script.saugroboter_raum_reinigen`) – siehe `home-assistant-config-snippets.yaml`. Darin die Vacuum-Entity und die Segment-IDs für die Räume eintragen.
+- In der Karte **Raum-Dropdown** und **Script „Raum starten“** eintragen.
 
-**Segment-IDs für Räume:**  
-Entwicklerwerkzeuge → Status → deine `vacuum.xxx` auswählen → Attribute „rooms“ ansehen. Dort siehst du pro Raum die ID (Segment-ID) und den Namen. Die Optionen im Dropdown sollten zu diesen Raumnamen passen; im Script musst du ggf. Raumnamen auf Segment-IDs mappen (siehe `home-assistant-config-snippets.yaml`).
+Segment-IDs: Entwicklerwerkzeuge → Status → deine `vacuum.xxx` → Attribute „rooms“ ansehen.
 
-- **Script „Raum starten“**  
-  In `home-assistant-config-snippets.yaml` ist ein Script `script.saugroboter_raum_reinigen` vorgegeben. Dieses in deine `configuration.yaml` unter `script:` übernehmen und **alle** `vacuum.dreame_vacuum_r2449k` durch deine echte `vacuum.xxx` Entity-ID ersetzen. Für jeden Raum in `input_select.saugroboter_raum` eine passende `choose`-Option mit der richtigen `segments: [id]` ergänzen. Anschließend Home Assistant neu starten oder „Konfiguration prüfen“ und neu laden.
+### 3. Xiaomi Vacuum Map Card (optional)
 
-### 3. Lovelace-View einbinden
+Für die **interaktive Map** in der Karte die **Xiaomi Vacuum Map Card** über HACS installieren. Ohne sie wird die Map-Kamera als Bild angezeigt.
 
-- **Neue View (empfohlen):**  
-  Dashboard → ⋮ → Konfigurieren → Ansichten → „Ansicht hinzufügen“.  
-  In der neuen View auf „⋮“ → „YAML bearbeiten“ und den **kompletten Inhalt** von `vacuum-karte.yaml` einfügen.
+## Alternative: Lovelace-View
 
-- **Entity-IDs ersetzen:**  
-  In der eingefügten View **alle** Vorkommen von  
-  - `vacuum.dreame_vacuum_r2449k` → deine `vacuum.xxx`  
-  - `camera.dreame_vacuum_r2449k_map` → deine `camera.xxx_map`  
-  - `dreame_vacuum_r2449k` (in sensor/select-Entities) → dein `xxx` (Name ohne `vacuum.`)  
-  ersetzen. Speichern.
-
-### 4. Xiaomi Vacuum Map Card – Räume (optional)
-
-In der Vacuum Map Card gibt es eine Option **„Generate rooms config“**. Damit kannst du die Räume der Karte generieren und bei Bedarf Zonen/ Räume direkt auf der Karte nutzen. Das Dropdown in dieser View startet die Reinigung unabhängig davon über das Script.
-
-### 5. Theme (optional)
-
-Wenn du die Karten-Optik global über ein Theme steuern willst, kannst du die Variablen aus `themes-vacuum-map.yaml` in dein bestehendes Theme oder ein neues Theme übernehmen. Die View nutzt aber bereits **conditional** zwei Karten (Dark / Hell) mit festem Styling; der Nutzer wählt über `input_select.vacuum_map_theme` zwischen „Dark“ und „Hell“.
-
-## Funktionen der Karte
-
-- **Karten-Hintergrund:** Auswahl „Dark“ oder „Hell“ über das Dropdown „Karten-Hintergrund“; die angezeigte Karte wechselt entsprechend (conditional cards).
-- **Raumauswahl:** Dropdown „Raum zum Reinigen“ → „Raum starten“ startet entweder die ganze Wohnung („Ganzer Boden“) oder die Segment-Reinigung für den gewählten Raum.
-- **Modi:** Buttons „Nur Saugen“, „Saugen & Wischen“, „Nur Wischen“ setzen den Reinigungsmodus; „Start“/„Stopp“ starten bzw. stoppen den Saugroboter.
-- **Status:** Batterie, Saugkraft, gereinigte Fläche, Reinigungszeit, Reinigungsmodus, aktueller Raum werden angezeigt.
-- **Map:** Es wird die **Current Map** der Dreame-Integration verwendet (`camera.xxx_map`), mit angepasster Optik (Dark/Hell) und reduzierten Tiles/Icons.
+Statt der einen Karte kannst du weiterhin die **View** aus `vacuum-karte.yaml` nutzen (Dashboard → Ansicht hinzufügen → YAML von `vacuum-karte.yaml` einfügen und Entity-IDs ersetzen). Die eine Karte ersetzt diese View aber vollständig.
 
 ## Mehrere Saugroboter
 
-Für jeden weiteren Roboter eine **eigene View** anlegen (Kopie von `vacuum-karte.yaml`) und darin die Entity-IDs durch die des jeweiligen Roboters ersetzen. Optional für jeden Roboter ein eigenes `input_select` für Raum und ein eigenes Script mit der passenden `vacuum.xxx` Entity-ID anlegen.
+Für jeden weiteren Roboter eine **eigene Cursor-Saugroboter-Karte** hinzufügen und darin die passende Vacuum-Entity und Map-Kamera eintragen.
 
 ## Hinweise
 
-- Die Optionen von `select.xxx_cleaning_mode` können je nach Gerät leicht abweichen (z. B. „Sweeping“, „Mopping“, „Sweeping and mopping“). Falls eine Option nicht funktioniert, in Entwicklerwerkzeuge → Status die möglichen Optionen der Entity prüfen und die Buttons in der View anpassen.
-- **card-mod** wird nur für das Styling der Map-Karte genutzt. Wenn card-mod nicht installiert ist, werden die Karten trotzdem angezeigt, aber ohne die angepassten Farben (Standard-Look der Xiaomi Vacuum Map Card).
+- Die Modi „Sweeping“, „Mopping“, „Sweeping and mopping“ können je nach Gerät abweichen. Optionen in Entwicklerwerkzeuge → Status der `select.xxx_cleaning_mode` prüfen.
