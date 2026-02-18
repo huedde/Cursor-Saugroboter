@@ -168,9 +168,12 @@
           listEl.hidden = false;
         }
         function hide() { hideTimer = window.setTimeout(function() { listEl.hidden = true; }, 200); }
-        inp.addEventListener('input', function() { dispatchConfig(self, getCfg()); show(); });
+        inp.addEventListener('input', function() { show(); });
         inp.addEventListener('focus', function() { show(); });
-        inp.addEventListener('blur', hide);
+        inp.addEventListener('blur', function() {
+          hide();
+          dispatchConfig(self, getCfg());
+        });
       }
       const self = this;
 
@@ -179,7 +182,7 @@
       bindEntitySearch(roomSelectInput, roomList, 'input_select.', getConfig);
       bindEntitySearch(roomScriptInput, scriptList, 'script.', getConfig);
 
-      titleInput.addEventListener('input', () => dispatchConfig(this, getConfig()));
+      titleInput.addEventListener('blur', () => dispatchConfig(this, getConfig()));
 
       const themeSelect = document.createElement('select');
       themeSelect.style.cssText = style;
