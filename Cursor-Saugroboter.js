@@ -326,8 +326,14 @@
         "--map-card-zoomer-background": isDark
           ? "rgba(15, 23, 42, 0.95)"
           : "rgba(248, 250, 252, 0.95)",
-        "--map-card-room-icon-background-color": "rgba(56, 189, 248, 0.2)",
-        "--map-card-room-icon-color": "#38bdf8"
+        // Raum-Icons ausblenden, nur Beschriftung lassen
+        "--map-card-room-icon-background-color": "transparent",
+        "--map-card-room-icon-background-color-selected": "transparent",
+        "--map-card-room-icon-color": "transparent",
+        "--map-card-room-icon-color-selected": "transparent",
+        "--map-card-room-label-color": isDark ? "#e5e7eb" : "#0f172a",
+        "--map-card-room-label-color-selected": isDark ? "#e5e7eb" : "#0f172a",
+        "--map-card-room-label-font-size": "12px"
       };
       Object.entries(vars).forEach(([k, v]) => mapEl.style.setProperty(k, v));
     }
