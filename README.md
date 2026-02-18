@@ -31,8 +31,10 @@ Die **Cursor Saugroboter-Karte** ist eine kleine Info-Karte, die nach der HACS-I
 2. Auf die Karte klicken → **⋮** → **Konfigurieren**.
 3. Oben rechts **„Visuellen Editor anzeigen“** wählen (falls noch YAML angezeigt wird).
 4. Im visuellen Editor kannst du:
-   - **Titel der Karte** anpassen (z. B. „Saugroboter – Hinweis“).
-   - Den Hinweistext lesen (Vacuum-View-Konfiguration siehe `vacuum-karte.yaml`).
+   - **Titel der Karte** – Überschrift der Karte (z. B. „Saugroboter – Hinweis“).
+   - **View-Pfad** – Pfad der Vacuum-View im Dashboard (z. B. `saugroboter`, wie in `vacuum-karte.yaml` unter `path: saugroboter`).
+   - **Button „Zur Vacuum-Karte“ anzeigen** – Checkbox: Soll auf der Karte ein Button angezeigt werden, der direkt zur Vacuum-View führt?
+   - **Button-Text** – Text des Buttons (z. B. „Zur Vacuum-Karte öffnen“).
 5. **Speichern** klicken.
 
 ### YAML-Konfiguration
@@ -41,10 +43,16 @@ Falls du die Karte per YAML bearbeitest:
 
 ```yaml
 type: custom:cursor-saugroboter-card
-title: Cursor Saugroboter   # optional, Standard: "Cursor Saugroboter"
+title: Cursor Saugroboter          # optional, Standard: "Cursor Saugroboter"
+view_path: saugroboter             # optional, Pfad der Vacuum-View (path in vacuum-karte.yaml)
+show_view_button: true             # optional, Button anzeigen (Standard: true)
+button_text: Zur Vacuum-Karte öffnen  # optional, Button-Beschriftung
 ```
 
-- **`title`** (optional): Überschrift der Karte. Wenn weggelassen, wird „Cursor Saugroboter“ angezeigt.
+- **`title`** (optional): Überschrift der Karte.
+- **`view_path`** (optional): Pfad der Vacuum-View im Dashboard. Wenn gesetzt und Button aktiv, erscheint ein Link-Button zur View (z. B. `/lovelace/saugroboter`).
+- **`show_view_button`** (optional): `true`/`false` – Button „Zur Vacuum-Karte“ anzeigen oder ausblenden.
+- **`button_text`** (optional): Beschriftung des Buttons.
 
 ### Hinweis zum visuellen Editor
 

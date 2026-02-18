@@ -3,6 +3,16 @@
 
 (function() {
   const CARD_TITLE_DEFAULT = 'Cursor Saugroboter';
+  const VIEW_PATH_DEFAULT = 'saugroboter';
+  const BUTTON_TEXT_DEFAULT = 'Zur Vacuum-Karte öffnen';
+
+  function dispatchConfigChanged(editor, config) {
+    editor.dispatchEvent(new CustomEvent('config-changed', {
+      detail: { config: config },
+      bubbles: true,
+      composed: true
+    }));
+  }
 
   // ========== Konfigurations-Editor (visueller Editor) ==========
   class CursorSaugroboterCardEditor extends HTMLElement {
@@ -20,42 +30,88 @@
       this._render();
     }
 
+    _addField(wrapper, labelText, input, marginBottom) {
+      const label = document.createElement('label');
+      label.style.display = 'block';
+      label.style.marginBottom = '6px';
+      label.style.fontWeight = '500';
+      label.style.marginTop = marginBottom ? '0' : '12px';
+      label.textContent = labelText;
+      wrapper.appendChild(label);
+      input.style.marginBottom = marginBottom || '16px';
+      wrapper.appendChild(input);
+    }
+
     _render() {
       if (!this.shadowRoot) return;
-      const title = this._config.title || CARD_TITLE_DEFAULT;
+      const c = this._config;
+      const title = c.title || CARD_TITLE_DEFAULT;
+      const viewPath = c.view_path !== undefined ? c.view_path : VIEW_PATH_DEFAULT;
+      const showButton = c.show_view_button !== false;
+      const buttonText = c.button_text || BUTTON_TEXT_DEFAULT;
 
       const wrapper = document.createElement('div');
       wrapper.style.padding = '16px';
       wrapper.style.lineHeight = '1.5';
+      wrapper.style.fontSize = '14px';
 
       const headline = document.createElement('h3');
       headline.style.marginTop = '0';
+      headline.style.marginBottom = '16px';
       headline.textContent = 'Cursor Saugroboter – Konfiguration';
       wrapper.appendChild(headline);
 
-      const label = document.createElement('label');
-      label.style.display = 'block';
-      label.style.marginBottom = '8px';
-      label.style.fontWeight = '500';
-      label.textContent = 'Titel der Karte';
-      wrapper.appendChild(label);
+      const inputStyle = 'width: 100%; max-width: 400px; padding: 8px 12px; box-sizing: border-box; font-size: 14px;';
 
-      const input = document.createElement('input');
-      input.type = 'text';
-      input.value = title;
-      input.placeholder = CARD_TITLE_DEFAULT;
-      input.style.cssText = 'width: 100%; max-width: 400px; padding: 8px 12px; margin-bottom: 16px; box-sizing: border-box; font-size: 14px;';
-      input.addEventListener('input', () => {
-        this.dispatchEvent(new CustomEvent('config-changed', {
-          detail: { config: { ...this._config, title: input.value || undefined } },
-          bubbles: true,
-          composed: true
-        }));
-      });
-      wrapper.appendChild(input);
+      const getConfig = () => {
+        const cfg = {};
+        if (titleInput.value.trim()) cfg.title = titleInput.value.trim();
+        if (viewPathInput.value.trim()) cfg.view_path = viewPathInput.value.trim();
+        cfg.show_view_button = showButtonCheck.checked;
+        if (buttonTextInput.value.trim()) cfg.button_text = buttonTextInput.value.trim();
+        return cfg;
+      };
+
+      const titleInput = document.createElement('input');
+      titleInput.type = 'text';
+      titleInput.value = title;
+      titleInput.placeholder = CARD_TITLE_DEFAULT;
+      titleInput.style.cssText = inputStyle;
+      titleInput.addEventListener('input', () => dispatchConfigChanged(this, getConfig()));
+      this._addField(wrapper, 'Titel der Karte', titleInput);
+
+      const viewPathInput = document.createElement('input');
+      viewPathInput.type = 'text';
+      viewPathInput.value = viewPath;
+      viewPathInput.placeholder = 'z. B. saugroboter';
+      viewPathInput.style.cssText = inputStyle;
+      viewPathInput.addEventListener('input', () => dispatchConfigChanged(this, getConfig()));
+      this._addField(wrapper, 'View-Pfad (Vacuum-View im Dashboard)', viewPathInput);
+
+      const showButtonLabel = document.createElement('label');
+      showButtonLabel.style.display = 'flex';
+      showButtonLabel.style.alignItems = 'center';
+      showButtonLabel.style.gap = '8px';
+      showButtonLabel.style.marginBottom = '8px';
+      showButtonLabel.style.marginTop = '12px';
+      const showButtonCheck = document.createElement('input');
+      showButtonCheck.type = 'checkbox';
+      showButtonCheck.checked = showButton;
+      showButtonCheck.addEventListener('change', () => dispatchConfigChanged(this, getConfig()));
+      showButtonLabel.appendChild(showButtonCheck);
+      showButtonLabel.appendChild(document.createTextNode('Button „Zur Vacuum-Karte“ anzeigen'));
+      wrapper.appendChild(showButtonLabel);
+
+      const buttonTextInput = document.createElement('input');
+      buttonTextInput.type = 'text';
+      buttonTextInput.value = buttonText;
+      buttonTextInput.placeholder = BUTTON_TEXT_DEFAULT;
+      buttonTextInput.style.cssText = inputStyle;
+      buttonTextInput.addEventListener('input', () => dispatchConfigChanged(this, getConfig()));
+      this._addField(wrapper, 'Button-Text', buttonTextInput, '20px');
 
       const info = document.createElement('div');
-      info.style.marginTop = '16px';
+      info.style.marginTop = '20px';
       info.style.padding = '12px';
       info.style.background = 'var(--ha-card-background, var(--secondary-background-color))';
       info.style.borderRadius = '8px';
@@ -83,21 +139,41 @@
     }
 
     getCardSize() {
-      return 3;
+      const c = this._config;
+      let size = 3;
+      if (c.view_path && c.show_view_button !== false) size += 1;
+      return size;
     }
 
     _render() {
       if (!this._config) return;
+      const c = this._config;
       const card = document.createElement('ha-card');
-      card.header = this._config.title || CARD_TITLE_DEFAULT;
+      card.header = c.title || CARD_TITLE_DEFAULT;
       const content = document.createElement('div');
       content.style.padding = '16px';
       content.style.lineHeight = '1.5';
-      content.innerHTML = [
+
+      const parts = [
         '<p><strong>HACS-Installation erfolgreich.</strong></p>',
         '<p>Die Vacuum-Karte (Dark/Hell, Raum-Dropdown, Status) ist eine <strong>Lovelace-View-Konfiguration</strong>, keine einzelne Karte.</p>',
         '<p>Bitte die Datei <code>vacuum-karte.yaml</code> aus dem Repository als neue View in dein Dashboard übernehmen und die Entity-IDs anpassen (siehe README).</p>'
-      ].join('');
+      ];
+
+      const viewPath = (c.view_path || VIEW_PATH_DEFAULT).trim();
+      const showButton = c.show_view_button !== false;
+      const buttonText = (c.button_text || BUTTON_TEXT_DEFAULT).trim();
+
+      if (viewPath && showButton) {
+        const href = '/lovelace/' + viewPath.replace(/^\/+/, '');
+        parts.push(
+          '<p style="margin-top: 16px;">',
+          '<a href="' + href + '" style="display: inline-block; padding: 10px 16px; background: var(--primary-color); color: var(--text-primary-color); text-decoration: none; border-radius: 8px; font-weight: 500;">' + (buttonText || BUTTON_TEXT_DEFAULT) + '</a>',
+          '</p>'
+        );
+      }
+
+      content.innerHTML = parts.join('');
       if (!this.shadowRoot) return;
       this.shadowRoot.innerHTML = '';
       this.shadowRoot.appendChild(card);
@@ -109,14 +185,17 @@
       this._render();
     }
 
-    // Visueller Editor: Konfigurations-Element für Lovelace
     static getConfigElement() {
       return document.createElement('cursor-saugroboter-card-editor');
     }
 
-    // Standard-Konfiguration für den Karten-Picker
     static getStubConfig() {
-      return { title: CARD_TITLE_DEFAULT };
+      return {
+        title: CARD_TITLE_DEFAULT,
+        view_path: VIEW_PATH_DEFAULT,
+        show_view_button: true,
+        button_text: BUTTON_TEXT_DEFAULT
+      };
     }
   }
 
