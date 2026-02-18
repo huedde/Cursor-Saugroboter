@@ -17,9 +17,38 @@ Verbesserte Vacuum-Karte mit **Dark-/Hell-Modus** für den Kartenhintergrund, **
 | `vacuum-karte.yaml` | Lovelace-View: Karte, Status, Raum-Dropdown, Modi (Saugen/Wischen), Dark/Hell-Karte |
 | `home-assistant-config-snippets.yaml` | Hilfs-Entities: `input_select` (Raum, Karten-Modus) und Script „Raum starten“ |
 | `themes-vacuum-map.yaml` | Optionale Theme-Variablen für Map-Card (Dark/Hell) |
-| `Cursor-Saugroboter.js` | Minimale Lovelace-Karte (für HACS-konforme Repo-Struktur) |
+| `Cursor-Saugroboter.js` | Lovelace-Info-Karte mit visuellem Editor (für HACS-konforme Repo-Struktur) |
 | `hacs.json` | HACS-Manifest für dieses Repository |
 | `README.md` | Diese Anleitung |
+
+## Konfiguration der Cursor-Saugroboter-Karte (Info-Karte)
+
+Die **Cursor Saugroboter-Karte** ist eine kleine Info-Karte, die nach der HACS-Installation angezeigt werden kann. Sie unterstützt den **visuellen Editor** und **YAML**.
+
+### Visueller Editor
+
+1. Karte zum Dashboard hinzufügen („Karte hinzufügen“ → „Cursor Saugroboter“).
+2. Auf die Karte klicken → **⋮** → **Konfigurieren**.
+3. Oben rechts **„Visuellen Editor anzeigen“** wählen (falls noch YAML angezeigt wird).
+4. Im visuellen Editor kannst du:
+   - **Titel der Karte** anpassen (z. B. „Saugroboter – Hinweis“).
+   - Den Hinweistext lesen (Vacuum-View-Konfiguration siehe `vacuum-karte.yaml`).
+5. **Speichern** klicken.
+
+### YAML-Konfiguration
+
+Falls du die Karte per YAML bearbeitest:
+
+```yaml
+type: custom:cursor-saugroboter-card
+title: Cursor Saugroboter   # optional, Standard: "Cursor Saugroboter"
+```
+
+- **`title`** (optional): Überschrift der Karte. Wenn weggelassen, wird „Cursor Saugroboter“ angezeigt.
+
+### Hinweis zum visuellen Editor
+
+Die Karte implementiert **getConfigElement()** und **getStubConfig()**. Dadurch zeigt Lovelace den visuellen Editor mit dem Feld „Titel der Karte“ und dem Hinweistext an, statt „Visueller Editor wird nicht unterstützt“. Die eigentliche Vacuum-Steuerung (Map, Dark/Hell, Raum-Dropdown, Status) bleibt die **View** aus `vacuum-karte.yaml`.
 
 ## HACS-Repository hinzufügen
 
