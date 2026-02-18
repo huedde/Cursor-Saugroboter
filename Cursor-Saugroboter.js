@@ -544,12 +544,113 @@
     }
   }
 
+  // ========== Einfache Floorplan-Karte (nur Räume + Roboter-Position) ==========
+  class CursorSaugroboterFloorplanCard extends HTMLElement {
+    setConfig(config) {
+      if (!config.vacuum_entity) {
+        throw new Error('vacuum_entity ist erforderlich');
+      }
+      this._config = config;
+    }
+
+    set hass(hass) {
+      this._hass = hass;
+      this._render();
+    }
+
+    getCardSize() {
+      return 4;
+    }
+
+    _state(entityId) {
+      if (!this._hass || !entityId) return null;
+      return this._hass.states[entityId];
+    }
+
+    _render() {
+      if (!this._config || !this._hass) return;
+      const c = this._config;
+      const vacuumEntity = c.vacuum_entity;
+      const vacuumName = getVacuumName(vacuumEntity);
+      const roomState = this._state(
+        c.room_status_entity || ('sensor.' + vacuumName + '_current_room')
+      );
+      const currentRoom = roomState ? roomState.state : null;
+      const roomsCfg = c.rooms || [];
+
+      if (!this.shadowRoot) this.attachShadow({ mode: 'open' });
+      this.shadowRoot.innerHTML = '';
+
+      const card = document.createElement('ha-card');
+      card.header = c.title || 'Saugroboter – Floorplan';
+
+      const wrap = document.createElement('div');
+      wrap.style.cssText =
+        'padding:12px 16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:6px;';
+
+      roomsCfg.forEach((r) => {
+        const id = r.id || r.name || '';
+        const label = r.label || r.name || id;
+        const box = document.createElement('div');
+        box.style.cssText =
+          'position:relative;border-radius:8px;border:1px solid rgba(148,163,184,0.4);' +
+          'padding:8px;font-size:12px;box-sizing:border-box;min-height:60px;' +
+          'background:rgba(15,23,42,0.95);color:#e5e7eb;';
+
+        const title = document.createElement('div');
+        title.textContent = label || id;
+        title.style.cssText = 'font-weight:500;margin-bottom:4px;';
+        box.appendChild(title);
+
+        const match =
+          currentRoom &&
+          (currentRoom === id ||
+            currentRoom === label ||
+            (r.match && currentRoom === r.match));
+
+        if (match) {
+          box.style.background = 'rgba(56,189,248,0.16)';
+          const robot = document.createElement('div');
+          robot.textContent = 'R';
+          robot.style.cssText =
+            'position:absolute;right:8px;bottom:6px;width:18px;height:18px;' +
+            'border-radius:50%;border:2px solid #38bdf8;color:#38bdf8;' +
+            'font-size:11px;display:flex;align-items:center;justify-content:center;';
+          box.appendChild(robot);
+        }
+
+        wrap.appendChild(box);
+      });
+
+      card.appendChild(wrap);
+      this.shadowRoot.appendChild(card);
+    }
+
+    static getStubConfig() {
+      return {
+        title: 'Saugroboter – Floorplan',
+        vacuum_entity: 'vacuum.saros_10r',
+        rooms: [
+          { id: '1', label: 'FerienSchule' },
+          { id: '2', label: 'Lager' }
+        ]
+      };
+    }
+  }
+
   customElements.define('cursor-saugroboter-card-editor', CursorSaugroboterCardEditor);
   customElements.define('cursor-saugroboter-card', CursorSaugroboterCard);
+  customElements.define('cursor-saugroboter-floorplan-card', CursorSaugroboterFloorplanCard);
+
   window.customCards = window.customCards || [];
   window.customCards.push({
     type: 'cursor-saugroboter-card',
     name: 'Cursor Saugroboter',
     description: 'Eine Karte: Map, Dark/Hell, Raum-Dropdown, Status, Saugen/Wischen/Start/Stopp'
+  });
+  window.customCards.push({
+    type: 'cursor-saugroboter-floorplan-card',
+    name: 'Cursor Saugroboter Floorplan',
+    description: 'Einfacher Grundriss: Räume + aktueller Roboter-Raum'
   });
 })();
