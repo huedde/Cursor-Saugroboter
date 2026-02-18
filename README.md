@@ -17,7 +17,20 @@ Verbesserte Vacuum-Karte mit **Dark-/Hell-Modus** für den Kartenhintergrund, **
 | `vacuum-karte.yaml` | Lovelace-View: Karte, Status, Raum-Dropdown, Modi (Saugen/Wischen), Dark/Hell-Karte |
 | `home-assistant-config-snippets.yaml` | Hilfs-Entities: `input_select` (Raum, Karten-Modus) und Script „Raum starten“ |
 | `themes-vacuum-map.yaml` | Optionale Theme-Variablen für Map-Card (Dark/Hell) |
+| `Cursor-Saugroboter.js` | Minimale Lovelace-Karte (für HACS-konforme Repo-Struktur) |
+| `hacs.json` | HACS-Manifest für dieses Repository |
 | `README.md` | Diese Anleitung |
+
+## HACS-Repository hinzufügen
+
+Wenn du dieses Repository in HACS als **benutzerdefiniertes Repository** einbinden willst:
+
+1. **HACS** → **Frontend** → **⋮** → **Benutzerdefinierte Repositories**
+2. **Repository:** `https://github.com/huedde/Cursor-Saugroboter` (oder dein Fork)
+3. **Typ:** **Dashboard** (oder **Plugin**) auswählen – HACS erwartet ein Plugin/Dashboard mit einer `.js`-Datei; diese ist vorhanden.
+4. **Hinzufügen** klicken.
+
+Nach dem Hinzufügen kannst du „Cursor Saugroboter“ installieren. Die eigentliche Vacuum-Karte ist die **YAML-View** (`vacuum-karte.yaml`) – diese View musst du wie unter „Einrichtung“ beschrieben manuell in dein Dashboard übernehmen und die Entity-IDs anpassen.
 
 ## Einrichtung (Schritte)
 
