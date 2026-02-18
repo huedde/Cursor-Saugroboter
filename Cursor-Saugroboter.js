@@ -300,6 +300,38 @@
       }
     }
 
+    _applyMapStyle(mapEl) {
+      if (!mapEl || !mapEl.style || !mapEl.style.setProperty) return;
+      const isDark = this._theme === 'Dark';
+      const vars = {
+        "--map-card-predefined-rectangle-fill-color": "transparent",
+        "--map-card-predefined-rectangle-line-color": "transparent",
+        "--map-card-predefined-rectangle-fill-color-selected": "transparent",
+        "--map-card-predefined-rectangle-line-color-selected": "transparent",
+        "--map-card-room-outline-fill-color": "transparent",
+        "--map-card-room-outline-fill-color-selected": "transparent",
+        "--map-card-room-outline-line-color":
+          isDark ? "rgba(148, 163, 184, 0.35)" : "rgba(30, 64, 175, 0.35)",
+        "--map-card-room-outline-line-color-selected":
+          isDark ? "rgba(148, 163, 184, 0.55)" : "rgba(30, 64, 175, 0.55)",
+        "--map-card-manual-path-line-color": "transparent",
+        "--map-card-manual-path-point-fill-color": "transparent",
+        "--map-card-manual-path-point-line-color": "transparent",
+        "--map-card-manual-rectangle-fill-color": "transparent",
+        "--map-card-manual-rectangle-line-color": "transparent",
+        "--map-card-predefined-point-icon-background-color": "transparent",
+        "--map-card-predefined-point-label-color": "transparent",
+        "--map-card-primary-color": isDark ? "#38bdf8" : "#2563eb",
+        "--map-card-secondary-color": isDark ? "#111827" : "#e5e7eb",
+        "--map-card-zoomer-background": isDark
+          ? "rgba(15, 23, 42, 0.95)"
+          : "rgba(248, 250, 252, 0.95)",
+        "--map-card-room-icon-background-color": "rgba(56, 189, 248, 0.2)",
+        "--map-card-room-icon-color": "#38bdf8"
+      };
+      Object.entries(vars).forEach(([k, v]) => mapEl.style.setProperty(k, v));
+    }
+
     _render() {
       if (!this._config || !this._hass) return;
       const c = this._config;
@@ -450,6 +482,7 @@
             tiles: [],
             icons: []
           });
+          this._applyMapStyle(mapEl);
           mapEl.hass = this._hass;
           mapWrap.appendChild(mapEl);
           mapUsed = true;
