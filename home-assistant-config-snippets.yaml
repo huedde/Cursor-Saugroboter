@@ -1,0 +1,86 @@
+# =============================================================================
+# Home Assistant – Hilfs-Entities für die Vacuum-Karte
+# =============================================================================
+# Diese Blöcke in deine configuration.yaml eintragen (oder als "YAML"-Helper
+# unter Einstellungen → Geräte & Dienste → Hilfsmittel anlegen).
+# =============================================================================
+
+# ---------- input_select: Karten-Hintergrund (Dark/Light) ----------
+# Unter Hilfsmittel → "Hilfsmittel erstellen" → Dropdown:
+#   Name: Vacuum Map Theme
+#   Optionen: Hell, Dark
+#   Entity ID: input_select.vacuum_map_theme
+#
+# Oder in configuration.yaml:
+input_select:
+  vacuum_map_theme:
+    name: "Karten-Hintergrund"
+    options:
+      - "Dark"
+      - "Hell"
+    icon: mdi:theme-light-dark
+
+  # ---------- input_select: Raum zum Reinigen (Raum-Dropdown) ----------
+  # Optionen mit deinen Raumnamen befüllen (z.B. aus Vacuum-Attribut "rooms").
+  # Segment-IDs: In Entwicklerwerkzeuge → Status nach "vacuum.XXX" suchen,
+  # Attribute "rooms" ansehen → dort segment id und name.
+  saugroboter_raum:
+    name: "Raum zum Reinigen"
+    options:
+      - "Ganzer Boden"
+      - "B1.12"
+      - "B1.13"
+      - "B1.14"
+      - "B1.15"
+      - "B1.16"
+      - "B1.17"
+      - "B1.18"
+      - "B1.19"
+      - "B1.20"
+      - "B1.22"
+      - "Flur"
+    icon: mdi:door-open
+
+# ---------- Script: Raumreinigung starten ----------
+# Ruft dreame_vacuum.vacuum_clean_segment auf, wenn ein Raum gewählt ist.
+# "Ganzer Boden" → vacuum.start.
+#
+# Entity-ID deines Saugroboters anpassen (z.B. vacuum.dreame_vacuum_r2449k).
+# Segment-IDs müssen zu den Optionen in input_select.saugroboter_raum passen
+# (Reihenfolge: erste Option = Ganzer Boden, dann B1.12 = segment_id 12 usw. –
+# oder du mappst im Script explizit Namen → segment_id).
+script:
+  saugroboter_raum_reinigen:
+    alias: "Saugroboter – gewählten Raum reinigen"
+    sequence:
+      - choose:
+          - conditions:
+              - condition: template
+                value_template: "{{ is_state('input_select.saugroboter_raum', 'Ganzer Boden') }}"
+            sequence:
+              - service: vacuum.start
+                target:
+                  entity_id: vacuum.dreame_vacuum_r2449k  # <-- anpassen
+          - conditions:
+              - condition: template
+                value_template: "{{ is_state('input_select.saugroboter_raum', 'B1.12') }}"
+            sequence:
+              - service: dreame_vacuum.vacuum_clean_segment
+                data:
+                  entity_id: vacuum.dreame_vacuum_r2449k  # <-- anpassen
+                  segments: [12]
+          - conditions:
+              - condition: template
+                value_template: "{{ is_state('input_select.saugroboter_raum', 'B1.13') }}"
+            sequence:
+              - service: dreame_vacuum.vacuum_clean_segment
+                data:
+                  entity_id: vacuum.dreame_vacuum_r2449k
+                  segments: [13]
+          # Weitere Räume analog: B1.14 → segments: [14], usw.
+        default: []
+    mode: single
+
+# Hinweis: Wenn du viele Räume hast, ist ein Template-Script mit
+# "Segment-ID aus Vacuum-Attribut rooms nach Raumnamen auflösen" sinnvoll.
+# Dann reicht ein einziges Script ohne jede choose-Option.

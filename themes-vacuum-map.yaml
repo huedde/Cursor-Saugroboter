@@ -1,0 +1,38 @@
+# =============================================================================
+# Theme-Snippet für Vacuum Map Card (Dark / Hell)
+# =============================================================================
+# In Einstellungen → Darstellung → Themen einen dieser Einträge als Basis
+# nutzen oder in dein bestehendes Theme einfügen. Die Variablen wirken auf
+# die Xiaomi Vacuum Map Card (card-mod muss die Karte nicht überschreiben).
+# =============================================================================
+
+# ---- Dark Mode für die Karte ----
+vacuum-map-dark:
+  # Map-Karte (custom:xiaomi-vacuum-map-card) – CSS-Variablen mit "--"
+  "--map-card-primary-color": "#3b82f6"
+  "--map-card-primary-text-color": "#f1f5f9"
+  "--map-card-secondary-color": "#334155"
+  "--map-card-secondary-text-color": "#e2e8f0"
+  "--map-card-zoomer-background": "rgba(30, 41, 59, 0.92)"
+  "--map-card-predefined-rectangle-fill-color": "rgba(59, 130, 246, 0.2)"
+  "--map-card-predefined-rectangle-line-color": "#60a5fa"
+  "--map-card-room-outline-fill-color": "rgba(30, 41, 59, 0.7)"
+  "--map-card-room-outline-line-color": "#94a3b8"
+
+# ---- Hell Mode für die Karte ----
+vacuum-map-hell:
+  "--map-card-primary-color": "#2563eb"
+  "--map-card-primary-text-color": "#1e293b"
+  "--map-card-secondary-color": "#e2e8f0"
+  "--map-card-secondary-text-color": "#0f172a"
+  "--map-card-zoomer-background": "rgba(248, 250, 252, 0.92)"
+  "--map-card-predefined-rectangle-fill-color": "rgba(37, 99, 235, 0.15)"
+  "--map-card-predefined-rectangle-line-color": "#2563eb"
+  "--map-card-room-outline-fill-color": "rgba(248, 250, 252, 0.6)"
+  "--map-card-room-outline-line-color": "#64748b"
+
+# Verwendung in configuration.yaml (optional):
+# frontend:
+#   themes:
+#     vacuum_dark: !include_dir_merge_named themes/
+# und diese Datei in einen Ordner themes/ legen bzw. die Werte ins Theme kopieren.

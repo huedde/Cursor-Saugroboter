@@ -1,0 +1,169 @@
+# =============================================================================
+# Vacuum-Karte – verbesserte Karte mit Dark/Light Mode, Status & Raum-Dropdown
+# =============================================================================
+# Voraussetzungen:
+# - Dreame Vacuum Integration (Tasshack) installiert
+# - Xiaomi Vacuum Map Card (PiotrMachowski) via HACS
+# - Optional: card-mod (HACS) für Karten-Styling
+# - input_select.vacuum_map_theme und input_select.saugroboter_raum angelegt
+#   (siehe home-assistant-config-snippets.yaml)
+#
+# ERSETZE in dieser Datei einmalig:
+# - vacuum.dreame_vacuum_r2449k  → deine vacuum-entity (z.B. Saugfried)
+# - camera.dreame_vacuum_r2449k_map → deine map-camera (Current Map)
+# - dreame_vacuum_r2449k → dein vacuum-name (entity_id ohne "vacuum.")
+# =============================================================================
+
+# Diese View unter Dashboard → Konfigurieren → Ansichten hinzufügen (YAML-Modus)
+# oder Inhalt in eine bestehende View einfügen.
+
+title: Saugroboter
+path: saugroboter
+icon: mdi:robot-vacuum
+
+cards:
+  # ---- Zeile 1: Raum-Dropdown, Karten-Modus (Dark/Hell), Status ----
+  - type: horizontal-stack
+    cards:
+      - type: entities
+        title: Raumauswahl
+        show_header_toggle: false
+        entities:
+          - entity: input_select.saugroboter_raum
+            name: Raum zum Reinigen
+          - type: button
+            name: Raum starten
+            tap_action:
+              action: call-service
+              service: script.saugroboter_raum_reinigen
+            show_state: false
+            icon: mdi:play-circle
+
+      - type: entities
+        title: Karten-Ansicht
+        show_header_toggle: false
+        entities:
+          - entity: input_select.vacuum_map_theme
+            name: Karten-Hintergrund
+
+      - type: entities
+        title: Status
+        show_header_toggle: false
+        entities:
+          - entity: sensor.dreame_vacuum_r2449k_battery_level
+            name: Batterie
+          - entity: select.dreame_vacuum_r2449k_suction_level
+            name: Saugkraft
+          - entity: sensor.dreame_vacuum_r2449k_cleaned_area
+            name: Gereinigte Fläche
+          - entity: sensor.dreame_vacuum_r2449k_cleaning_time
+            name: Reinigungszeit
+          - entity: select.dreame_vacuum_r2449k_cleaning_mode
+            name: Reinigungsmodus
+          - entity: sensor.dreame_vacuum_r2449k_current_room
+            name: Aktueller Raum
+
+  # ---- Zeile 2: Nur Saugen / Saugen & Wischen / Nur Wischen + Start/Stopp ----
+  - type: horizontal-stack
+    cards:
+      - type: button
+        name: Nur Saugen
+        tap_action:
+          action: call-service
+          service: select.select_option
+          service_data:
+            entity_id: select.dreame_vacuum_r2449k_cleaning_mode
+            option: "Sweeping"
+        icon: mdi:vacuum
+      - type: button
+        name: Saugen & Wischen
+        tap_action:
+          action: call-service
+          service: select.select_option
+          service_data:
+            entity_id: select.dreame_vacuum_r2449k_cleaning_mode
+            option: "Sweeping and mopping"
+        icon: mdi:vacuum-outline
+      - type: button
+        name: Nur Wischen
+        tap_action:
+          action: call-service
+          service: select.select_option
+          service_data:
+            entity_id: select.dreame_vacuum_r2449k_cleaning_mode
+            option: "Mopping"
+        icon: mdi:water
+      - type: button
+        name: Start
+        tap_action:
+          action: call-service
+          service: vacuum.start
+          service_data:
+            entity_id: vacuum.dreame_vacuum_r2449k
+        icon: mdi:play
+      - type: button
+        name: Stopp
+        tap_action:
+          action: call-service
+          service: vacuum.stop
+          service_data:
+            entity_id: vacuum.dreame_vacuum_r2449k
+        icon: mdi:stop
+
+  # ---- Zeile 3: Karte – Hell-Modus ----
+  - type: conditional
+    conditions:
+      - entity: input_select.vacuum_map_theme
+        state: "Hell"
+    card:
+      type: custom:xiaomi-vacuum-map-card
+      entity: vacuum.dreame_vacuum_r2449k
+      map_source:
+        camera: camera.dreame_vacuum_r2449k_map
+      calibration_source:
+        camera: true
+      vacuum_platform: Tasshack/dreame-vacuum
+      tiles: []
+      icons: []
+      card_mod:
+        style: |
+          ha-card {
+            --map-card-primary-color: #2563eb;
+            --map-card-primary-text-color: #1e293b;
+            --map-card-secondary-color: #e2e8f0;
+            --map-card-secondary-text-color: #0f172a;
+            --map-card-zoomer-background: rgba(248, 250, 252, 0.92);
+            --map-card-predefined-rectangle-fill-color: rgba(37, 99, 235, 0.15);
+            --map-card-predefined-rectangle-line-color: #2563eb;
+            --map-card-room-outline-fill-color: rgba(248, 250, 252, 0.6);
+            --map-card-room-outline-line-color: #64748b;
+          }
+
+  # ---- Zeile 4: Karte – Dark-Modus ----
+  - type: conditional
+    conditions:
+      - entity: input_select.vacuum_map_theme
+        state: "Dark"
+    card:
+      type: custom:xiaomi-vacuum-map-card
+      entity: vacuum.dreame_vacuum_r2449k
+      map_source:
+        camera: camera.dreame_vacuum_r2449k_map
+      calibration_source:
+        camera: true
+      vacuum_platform: Tasshack/dreame-vacuum
+      tiles: []
+      icons: []
+      card_mod:
+        style: |
+          ha-card {
+            --map-card-primary-color: #3b82f6;
+            --map-card-primary-text-color: #f1f5f9;
+            --map-card-secondary-color: #334155;
+            --map-card-secondary-text-color: #e2e8f0;
+            --map-card-zoomer-background: rgba(30, 41, 59, 0.92);
+            --map-card-predefined-rectangle-fill-color: rgba(59, 130, 246, 0.2);
+            --map-card-predefined-rectangle-line-color: #60a5fa;
+            --map-card-room-outline-fill-color: rgba(30, 41, 59, 0.7);
+            --map-card-room-outline-line-color: #94a3b8;
+          }
