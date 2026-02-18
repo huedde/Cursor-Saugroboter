@@ -585,8 +585,31 @@
       card.header = c.title || 'Saugroboter – Floorplan';
 
       const wrap = document.createElement('div');
-      wrap.style.cssText =
-        'padding:12px 16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:6px;';
+
+      // Prüfen, ob Koordinaten (x/y/w/h) angegeben sind
+      const hasLayout = roomsCfg.some(
+        (r) => r && (r.x !== undefined || r.y !== undefined)
+      );
+      if (hasLayout) {
+        // maximale Spaltenanzahl aus Koordinaten berechnen
+        let maxCol = 1;
+        roomsCfg.forEach((r) => {
+          if (!r) return;
+          const x = Number.isFinite(r.x) ? r.x : 1;
+          const w = Number.isFinite(r.w) ? r.w : 1;
+          const endCol = x + w - 1;
+          if (endCol > maxCol) maxCol = endCol;
+        });
+        wrap.style.cssText =
+          'padding:12px 16px;display:grid;gap:6px;' +
+          'grid-template-columns:repeat(' +
+          maxCol +
+          ',minmax(70px,1fr));';
+      } else {
+        // Fallback: automatische Kacheln, wenn kein Layout definiert ist
+        wrap.style.cssText =
+          'padding:12px 16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:6px;';
+      }
 
       roomsCfg.forEach((r) => {
         const id = r.id || r.name || '';
@@ -601,6 +624,15 @@
         title.textContent = label || id;
         title.style.cssText = 'font-weight:500;margin-bottom:4px;';
         box.appendChild(title);
+
+        if (hasLayout) {
+          const x = Number.isFinite(r.x) ? r.x : 1;
+          const y = Number.isFinite(r.y) ? r.y : 1;
+          const wSpan = Number.isFinite(r.w) ? r.w : 1;
+          const hSpan = Number.isFinite(r.h) ? r.h : 1;
+          box.style.gridColumn = x + ' / span ' + wSpan;
+          box.style.gridRow = y + ' / span ' + hSpan;
+        }
 
         const match =
           currentRoom &&
