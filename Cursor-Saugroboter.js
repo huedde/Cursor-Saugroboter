@@ -326,6 +326,12 @@
       }
 
       const sensor = (name, entityId) => {
+        if (!entityId) {
+          const d = document.createElement('div');
+          d.style.cssText = 'font-size: 12px;';
+          d.innerHTML = '<strong>' + name + '</strong>: –';
+          return d;
+        }
         const s = this._state(entityId);
         const v = s ? (s.attributes && s.attributes.unit_of_measurement ? s.state + ' ' + s.attributes.unit_of_measurement : s.state) : '–';
         const d = document.createElement('div');
@@ -336,12 +342,19 @@
       const statusRow = document.createElement('div');
       statusRow.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px;';
       if (vacuumName) {
-        statusRow.appendChild(sensor('Batterie', 'sensor.' + vacuumName + '_battery_level'));
-        statusRow.appendChild(sensor('Saugkraft', 'select.' + vacuumName + '_suction_level'));
-        statusRow.appendChild(sensor('Fläche', 'sensor.' + vacuumName + '_cleaned_area'));
-        statusRow.appendChild(sensor('Zeit', 'sensor.' + vacuumName + '_cleaning_time'));
-        statusRow.appendChild(sensor('Modus', 'select.' + vacuumName + '_cleaning_mode'));
-        statusRow.appendChild(sensor('Raum', 'sensor.' + vacuumName + '_current_room'));
+        const batteryEntity = this._config.battery_entity || ('sensor.' + vacuumName + '_battery_level');
+        const suctionEntity = this._config.suction_entity || ('select.' + vacuumName + '_suction_level');
+        const areaEntity = this._config.area_entity || ('sensor.' + vacuumName + '_cleaned_area');
+        const timeEntity = this._config.time_entity || ('sensor.' + vacuumName + '_cleaning_time');
+        const modeStatusEntity = this._config.mode_entity || ('select.' + vacuumName + '_cleaning_mode');
+        const roomStatusEntity = this._config.room_status_entity || ('sensor.' + vacuumName + '_current_room');
+
+        statusRow.appendChild(sensor('Batterie', batteryEntity));
+        statusRow.appendChild(sensor('Saugkraft', suctionEntity));
+        statusRow.appendChild(sensor('Fläche', areaEntity));
+        statusRow.appendChild(sensor('Zeit', timeEntity));
+        statusRow.appendChild(sensor('Modus', modeStatusEntity));
+        statusRow.appendChild(sensor('Raum', roomStatusEntity));
       }
       container.appendChild(statusRow);
 
@@ -406,6 +419,13 @@
         map_camera: 'camera.dreame_vacuum_r2449k_map',
         room_select_entity: 'input_select.saugroboter_raum',
         room_script_entity: 'script.saugroboter_raum_reinigen',
+        // optionale Status-Entitäten; wenn leer, werden Standard-Namen aus vacuum_entity abgeleitet
+        battery_entity: undefined,
+        suction_entity: undefined,
+        area_entity: undefined,
+        time_entity: undefined,
+        mode_entity: undefined,
+        room_status_entity: undefined,
         default_theme: 'Dark'
       };
     }

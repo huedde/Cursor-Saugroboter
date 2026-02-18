@@ -42,6 +42,14 @@ vacuum_entity: vacuum.dreame_vacuum_r2449k
 map_camera: camera.dreame_vacuum_r2449k_map
 room_select_entity: input_select.saugroboter_raum
 room_script_entity: script.saugroboter_raum_reinigen
+# optionale Status-Entitäten – falls du eigene Sensoren/Selects verwenden willst
+# (wenn weggelassen, werden Namen aus vacuum_entity abgeleitet)
+battery_entity: sensor.dein_vacuum_battery_level
+suction_entity: select.dein_vacuum_suction_level
+area_entity: sensor.dein_vacuum_cleaned_area
+time_entity: sensor.dein_vacuum_cleaning_time
+mode_entity: select.dein_vacuum_cleaning_mode
+room_status_entity: sensor.dein_vacuum_current_room
 default_theme: Dark
 ```
 
@@ -49,6 +57,7 @@ default_theme: Dark
 - **`map_camera`** (Pflicht): Entity-ID der Map-Kamera (Current Map).
 - **`room_select_entity`** (optional): Dropdown für Raumauswahl.
 - **`room_script_entity`** (optional): Script zum Starten der Raumreinigung.
+- **`battery_entity`**, **`suction_entity`**, **`area_entity`**, **`time_entity`**, **`mode_entity`**, **`room_status_entity`** (optional): eigene Entitäten für Batterie, Saugkraft, Fläche, Zeit, Modus, aktuellen Raum.
 - **`default_theme`** (optional): `Dark` oder `Hell` – Standard für den Karten-Hintergrund (umschaltbar auf der Karte).
 
 ### Inhalt der Karte
